@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="zh">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>模型 Fingerprint</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="_magpie/bridge.js"></script>
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <header>
+    <div><p class="eyebrow">LM DETECTOR</p><h1>模型 Fingerprint</h1><p class="muted">从已添加的模型中选择目标，由 lmfpd-sdk 检测回答的 fingerprint。</p></div>
+    <span id="connection" class="badge">等待 backend</span>
+  </header>
+  <p id="error" class="error" role="alert" hidden></p>
+  <details id="settings">
+    <summary>Magpie API 设置</summary>
+    <div class="settings-grid">
+      <label>Base URL<input id="base-url" type="url" value="http://127.0.0.1:3425/v1" autocomplete="off"></label>
+      <label>Gateway key<input id="api-key" type="password" placeholder="填写 Magpie gateway key" autocomplete="off"></label>
+      <label>或使用环境变量<input id="key-env" type="text" placeholder="MAGPIE_DETECTOR_API_KEY" autocomplete="off"></label>
+    </div>
+    <p class="muted">地址由 Magpie container 内部访问。同一 container 可使用上面的默认地址。key 保存在此 plugin 的 options 中；填写 key 时优先使用它。</p>
+    <button id="save" type="button">保存并读取模型</button>
+  </details>
+  <section aria-labelledby="select-title">
+    <div class="section-head"><h2 id="select-title">检测范围</h2><button id="refresh" type="button">刷新模型</button></div>
+    <div class="modes" role="group" aria-label="检测范围">
+      <label><input type="radio" name="scope" value="models" checked> 指定模型</label>
+      <label><input type="radio" name="scope" value="providers"> 指定 provider 的全部模型</label>
+      <label><input type="radio" name="scope" value="all"> 全部 provider 的全部模型</label>
+    </div>
+    <div id="picker-tools"><input id="search" type="search" placeholder="搜索模型或 provider" aria-label="搜索模型或 provider"><button id="select-visible" type="button">选择搜索结果</button><button id="clear" type="button">清空选择</button></div>
+    <div id="targets" class="targets"><p class="muted">先保存 API 设置，再读取模型列表。</p></div>
+    <p id="selection-count" class="muted">已选 0 个模型</p>
+    <details class="advanced">
+      <summary>检测参数</summary>
+      <div class="settings-grid">
+        <label>每个模型的 rounds<input id="rounds" type="number" min="1" step="1" value="1"></label>
+        <label>同时检测的模型 rounds<input id="concurrency" type="number" min="1" step="1" value="1"></label>
+        <label>每轮 challenge 数<select id="count"><option>3</option><option>2</option><option>1</option></select></label>
+        <label>每轮并发 challenge 数<select id="parallel"><option>3</option><option>2</option><option>1</option></select></label>
+        <label>API<select id="api"><option value="auto">自动选择 native API</option><option value="chat_completions">Chat Completions</option><option value="responses">Responses</option><option value="messages">Messages</option></select></label>
+        <label>First-byte timeout（秒，0 为不限）<input id="timeout" type="number" min="0" step="any" value="120"></label>
+        <label>Reasoning effort<input id="effort" type="text" placeholder="留空使用默认值"></label>
+        <label>Service tier<select id="service-tier"><option>default</option><option>flex</option><option>fast</option><option>ultrafast</option></select></label>
+      </div>
+      <label class="inline"><input id="strict" type="checkbox"> Strict：三条完整有效回答才评分</label>
+    </details>
+    <div class="run-bar"><div><strong id="request-count">预计 0 次 challenge 请求</strong><p class="muted">检测会使用对应 provider 的额度。</p></div><button id="start" type="button" class="primary" disabled>开始检测</button></div>
+  </section>
+  <section aria-labelledby="result-title">
+    <div class="section-head"><h2 id="result-title">检测结果</h2><button id="cancel" type="button" hidden>取消检测</button></div>
+    <p id="progress" role="status" aria-live="polite">尚未开始检测。</p>
+    <progress id="progress-bar" max="1" value="0" hidden></progress>
+    <p id="reference" class="muted"></p>
+    <div id="results"></div>
+    <details id="json-box" hidden><summary>查看结果 JSON</summary><textarea id="json" readonly rows="12" aria-label="检测结果 JSON"></textarea></details>
+    <p id="history" class="muted"></p>
+  </section>
+  <footer>
+    <p>Fingerprint 是参考库内的相似度排名，不能证明模型身份。probability 仅比较库内候选；库外模型也可能有高 probability。</p>
+    <p>检测经过当前 Magpie routing、fallback 和 middleware。每次开始、取消或保存设置会触发 Magpie plugin host 重载；已有结果保留，中断的任务不会自动重跑。</p>
+    <p id="backend-note">正在等待 plugin backend；如果长时间没有更新，请打开「插件 → 已安装」加载 host，再回到此页。</p>
+  </footer>
+</body>
+</html>

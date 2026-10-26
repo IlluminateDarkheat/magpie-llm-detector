@@ -1,0 +1,6 @@
+node_modules/
+test/
+page/generated/
+.env*
+*.tgz
+.DS_Store
